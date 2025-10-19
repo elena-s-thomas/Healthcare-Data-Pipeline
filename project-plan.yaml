@@ -1,0 +1,93 @@
+project_name: Scalable Healthcare Claims Data Pipeline
+description: >
+  Design and implement a cloud-based ETL pipeline that ingests, cleans, and transforms public healthcare claims data, 
+  stores it in GCS and BigQuery, and allows for downstream SQL-based analytics and lightweight reporting via Looker Studio.
+
+technologies:
+  language: Python
+  transformation_tools: Jupyter Notebook
+  orchestration: Mage AI
+  storage:
+    - Google Cloud Storage
+    - BigQuery
+  dashboarding: Looker Studio
+  analytics: SQL (BigQuery)
+
+datasets:
+  - name: CMS Medicare Claims Synthetic Data (DE-SynPUF)
+    source: https://www.cms.gov
+    format: CSV
+    access: Public
+    description: >
+      Synthetic Medicare claims data including patient demographics, visits, diagnoses, etc.
+    use_case: Simulates a healthcare claims data environment without HIPAA concerns.
+
+  - name: MIMIC-IV
+    source: https://physionet.org/content/mimiciv/
+    format: CSV
+    access: Credentialed (CITI training required)
+    description: >
+      De-identified ICU patient EHR data with labs, vitals, diagnoses, prescriptions.
+    use_case: Useful for hospital-level temporal data handling and joins.
+
+  - name: National Ambulatory Medical Care Survey (NAMCS)
+    source: https://www.cdc.gov/nchs/ahcd/index.htm
+    format: CSV / SAS
+    access: Public
+    description: >
+      Outpatient visit-level data with symptoms, diagnoses, medications.
+    use_case: Lightweight analytics or combination with other sources.
+
+pipeline:
+  steps:
+    - step: Data Cleaning and Transformation
+      tool: Jupyter Notebook
+      tasks:
+        - Load raw CSV data (from selected dataset)
+        - Handle missing values
+        - Remove duplicates
+        - Normalize categorical fields (e.g., ICD/CPT codes)
+        - Standardize date formats
+        - Save cleaned data to temporary local or cloud path
+
+    - step: Storage
+      tool: Google Cloud Storage
+      tasks:
+        - Upload raw data to: gs://<your-bucket>/raw/
+        - Upload cleaned/transformed data to: gs://<your-bucket>/processed/
+
+    - step: ETL and Orchestration
+      tool: Mage AI
+      tasks:
+        - Extract data from Google Cloud Storage
+        - Perform transformations in Python:
+            - Example: enrich with ICD-10 descriptions
+        - Load transformed datasets into BigQuery
+        - Create reusable pipelines:
+            - Patient Demographics Pipeline
+            - Claims or Encounters Load
+            - Diagnoses and Procedures Normalization
+
+    - step: Analytics
+      tool: SQL (BigQuery)
+      tasks:
+        - Write SQL queries for:
+            - Unique patients per year
+            - Avg. visits per patient
+            - Top 10 diagnosis codes
+            - Total cost per procedure group
+            - Readmission patterns
+
+    - step: Dashboard
+      tool: Looker Studio
+      tasks:
+        - Create a lightweight dashboard with:
+            - Monthly claims count
+            - Top 10 diagnoses
+            - Cost trends over time
+        - Purpose: Validate pipeline output and ensure data quality
+
+notes:
+  - Focus on robust engineering (ETL, orchestration, cloud integration)
+  - Analytics and dashboard kept minimal by design
+  - Project extensible with additional datasets or custom pipelines
